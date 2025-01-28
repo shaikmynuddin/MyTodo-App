@@ -1,9 +1,11 @@
-import { View, TextInput, Button, StyleSheet, Text, FlatList, TouchableOpacity } from 'react-native';
+import { View, TextInput, Button, StyleSheet, Text, FlatList, TouchableOpacity, ScrollView } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { addDoc, collection, deleteDoc, onSnapshot, doc, updateDoc } from 'firebase/firestore';
 import { FIRESTORE_DB } from '../../firebaseConfig';
+import { FIREBASE_AUTH } from '../../firebaseConfig';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Entypo from '@expo/vector-icons/Entypo';
+import { NavigationProp } from '@react-navigation/native';
 
 export interface Todo {
   title: string;
@@ -15,7 +17,11 @@ export interface Todo {
   id: string;
 }
 
-const List = ({ navigation }: any) => {
+interface RouterProps {
+  navigation: NavigationProp<any, any>;
+}
+
+const List = ({ navigation }: RouterProps) => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -81,7 +87,15 @@ const List = ({ navigation }: any) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.form}>
+      <View style={styles.logoutButtonContainer}>
+        <TouchableOpacity onPress={() => FIREBASE_AUTH.signOut()} style={styles.logoutButton}>
+          <Ionicons name="log-out-outline" size={24} color="black" />
+          <Text style={styles.logoutText}>Logout</Text>
+        </TouchableOpacity>
+      </View>
+      
+      {/* ScrollView for the form to avoid screen overflow */}
+      <ScrollView style={styles.form} contentContainerStyle={{ paddingBottom: 20 }}>
         <TextInput
           style={styles.input}
           placeholder="Title"
@@ -113,9 +127,16 @@ const List = ({ navigation }: any) => {
           value={priority}
         />
         <Button onPress={addTodo} title="Add Task" disabled={!title || !description || !deadline || !priority} />
-      </View>
+      </ScrollView>
+
+      {/* Scrollable FlatList for todos */}
       {todos.length > 0 && (
-        <FlatList data={todos} renderItem={(item) => renderTodo(item)} keyExtractor={(todo: Todo) => todo.id} />
+        <FlatList 
+          data={todos} 
+          renderItem={renderTodo} 
+          keyExtractor={(todo: Todo) => todo.id} 
+          style={styles.todoList}
+        />
       )}
     </View>
   );
@@ -126,10 +147,27 @@ export default List;
 const styles = StyleSheet.create({
   container: {
     marginHorizontal: 20,
-    marginVertical: 20,
+    marginVertical: 2,
+    position: 'relative',
+  },
+  logoutButtonContainer: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    zIndex: 1,
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logoutText: {
+    marginLeft: 8,
+    fontSize: 16,
+    color: 'black',
   },
   form: {
     marginVertical: 20,
+    marginTop: 60,  // Space for the logout button
   },
   input: {
     height: 40,
@@ -148,6 +186,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 10,
     marginVertical: 4,
+    borderRadius: 8,
   },
   todoDetails: {
     flex: 1,
@@ -163,5 +202,8 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  todoList: {
+    marginTop: 20, 
   }
 });
