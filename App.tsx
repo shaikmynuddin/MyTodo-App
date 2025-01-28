@@ -1,7 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 import List from "./app/screens/List";
-import Details from "./app/screens/Details";
 import Login from './app/screens/Login';
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
